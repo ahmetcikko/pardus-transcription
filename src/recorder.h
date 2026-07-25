@@ -1,7 +1,6 @@
 #pragma once
 #include "miniaudio.h"
 #include <atomic>
-#include <cstdint>
 #include <functional>
 #include <mutex>
 #include <vector>
@@ -11,11 +10,13 @@ class Recorder {
     Recorder();
     ~Recorder();
     bool start();
+    void pause();
+    bool resume();
     void stop();
+    void clear();
     float level() const;
     std::vector<float> snapshot();
-    std::vector<float> take();
-    void on_finished(std::function<void()> callback);
+    void on_full(std::function<void()> callback);
 
   private:
     static void data_callback(ma_device *device, void *output,
@@ -25,10 +26,9 @@ class Recorder {
     ma_device m_device;
     std::vector<float> m_samples;
     std::mutex m_mutex;
-    std::function<void()> m_finished;
+    std::function<void()> m_full;
     std::atomic<float> m_level;
     std::atomic<bool> m_running;
     std::atomic<bool> m_done;
-    std::int64_t m_start_ms;
     bool m_ready;
 };
