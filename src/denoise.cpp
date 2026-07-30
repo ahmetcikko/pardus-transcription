@@ -15,9 +15,12 @@ void denoise(std::vector<float> &samples) {
         (*instance).ApplyConfig(cfg);
         return instance;
     }();
+
     webrtc::StreamConfig stream(16000, 1);
+    // APM only accepts fixed 10ms frames at this rate; leftover tail samples are left unprocessed
     const int frame = stream.sample_rate_hz() / 100;
     (*apm).Initialize();
+
     for (int offset = 0; offset + frame <= (int)samples.size();
          offset += frame) {
         float *ptr = samples.data() + offset;

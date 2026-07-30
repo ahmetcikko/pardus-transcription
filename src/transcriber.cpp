@@ -12,9 +12,11 @@ bool transcriber_init(const std::string &model_path) {
     g_ctx = whisper_init_from_file_with_params(model_path.c_str(), cparams);
     return g_ctx != nullptr;
 }
+
 std::string transcribe(const std::vector<float> &samples) {
     if (!g_ctx || samples.size() < 8000)
         return "";
+
     whisper_full_params params =
         whisper_full_default_params(WHISPER_SAMPLING_BEAM_SEARCH);
     params.single_segment = false;
@@ -24,12 +26,15 @@ std::string transcribe(const std::vector<float> &samples) {
     params.language = "tr";
     int threads = (int)std::thread::hardware_concurrency();
     params.n_threads = threads > 0 ? std::min(threads, 8) : 4;
+
     if (whisper_full(g_ctx, params, samples.data(), (int)samples.size()) != 0)
         return "";
+
     std::string out;
     int n = whisper_full_n_segments(g_ctx);
     for (int i = 0; i < n; i++)
         out += whisper_full_get_segment_text(g_ctx, i);
+
     size_t begin = out.find_first_not_of(" \t\r\n");
     if (begin == std::string::npos)
         return "";

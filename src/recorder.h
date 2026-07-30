@@ -19,9 +19,11 @@ class Recorder {
     void on_full(std::function<void()> callback);
 
   private:
+    // must stay a free/static function: miniaudio invokes this as a plain C function pointer
     static void data_callback(ma_device *device, void *output,
                               const void *input, ma_uint32 frames);
     void feed(const float *samples, ma_uint32 frames);
+
     ma_context m_context;
     ma_device m_device;
     std::vector<float> m_samples;

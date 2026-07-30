@@ -21,6 +21,7 @@ static std::string run(const std::string &command) {
     pclose(pipe);
     return out;
 }
+
 static std::string trim(const std::string &value) {
     size_t begin = value.find_first_not_of(" \t\r\n");
     if (begin == std::string::npos)
@@ -28,6 +29,7 @@ static std::string trim(const std::string &value) {
     size_t end = value.find_last_not_of(" \t\r\n");
     return value.substr(begin, end - begin + 1);
 }
+
 static std::string self_path() {
     char buffer[PATH_MAX];
     ssize_t length = readlink("/proc/self/exe", buffer, sizeof(buffer) - 1);
@@ -36,10 +38,12 @@ static std::string self_path() {
     buffer[length] = '\0';
     return std::string(buffer);
 }
+
 static std::string list_key() {
     return trim(
         run(std::string("gsettings get ") + SCHEMA + " custom-keybindings"));
 }
+
 bool keybinding_register() {
     std::string command = self_path();
     if (command.empty())
@@ -47,6 +51,7 @@ bool keybinding_register() {
     std::string list = list_key();
     if (list.find(KEY_PATH) == std::string::npos) {
         std::string updated;
+        // gsettings prints an empty typed array as "@as []", not "[]"
         if (list == "@as []" || list == "[]" || list.empty())
             updated = std::string("['") + KEY_PATH + "']";
         else
@@ -61,6 +66,7 @@ bool keybinding_register() {
     run(base + "binding \"'" + BINDING + "'\"");
     return true;
 }
+
 bool keybinding_unregister() {
     std::string list = list_key();
     std::string token = std::string("'") + KEY_PATH + "'";

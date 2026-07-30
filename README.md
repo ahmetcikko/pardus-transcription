@@ -97,7 +97,7 @@ If the notepad window fails to open for any reason, the app falls back to transc
 
 ### Install
 
-``
+```
 sudo dpkg -i pardus-dikte_1.0.0_amd64.deb
 sudo apt -f install    # if any dependency is missing
 ```

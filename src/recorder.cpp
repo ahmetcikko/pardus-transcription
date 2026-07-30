@@ -3,14 +3,18 @@
 #include <cstddef>
 
 static constexpr int SAMPLE_RATE = 16000;
+// hard cap so an unattended recording can't grow the buffer unbounded (30 min at 16kHz mono)
 static constexpr std::size_t MAX_SAMPLES = (std::size_t)SAMPLE_RATE * 1800;
 
 Recorder::Recorder()
     : m_level(0.0f), m_running(false), m_done(false), m_ready(false) {}
+
 Recorder::~Recorder() { stop(); }
+
 void Recorder::on_full(std::function<void()> callback) {
     m_full = std::move(callback);
 }
+
 bool Recorder::start() {
     if (ma_context_init(nullptr, 0, nullptr, &m_context) != MA_SUCCESS)
         return false;
@@ -34,6 +38,7 @@ bool Recorder::start() {
     m_ready = true;
     return true;
 }
+
 void Recorder::pause() {
     if (!m_ready)
         return;
@@ -41,6 +46,7 @@ void Recorder::pause() {
     m_level.store(0.0f);
     ma_device_stop(&m_device);
 }
+
 bool Recorder::resume() {
     if (!m_ready)
         return false;
@@ -49,6 +55,7 @@ bool Recorder::resume() {
     m_running.store(true);
     return true;
 }
+
 void Recorder::stop() {
     if (!m_ready)
         return;
@@ -57,21 +64,27 @@ void Recorder::stop() {
     ma_device_uninit(&m_device);
     ma_context_uninit(&m_context);
 }
+
 void Recorder::clear() {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_samples.clear();
     m_done.store(false);
 }
+
 float Recorder::level() const { return m_level.load(); }
+
 std::vector<float> Recorder::snapshot() {
     std::lock_guard<std::mutex> lock(m_mutex);
     return m_samples;
 }
+
 void Recorder::data_callback(ma_device *device, void *, const void *input,
                              ma_uint32 frames) {
     Recorder *self = static_cast<Recorder *>((*device).pUserData);
     (*self).feed(static_cast<const float *>(input), frames);
 }
+
+// runs on miniaudio's realtime capture thread, not the Qt thread
 void Recorder::feed(const float *samples, ma_uint32 frames) {
     if (!m_running.load())
         return;

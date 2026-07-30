@@ -16,9 +16,11 @@ ApplicationWindow {
     title: "Pardus Dikte"
     color: "#16171c"
     property string saveState: ""
+
     function tr(turkish, english) {
         return backend.turkish ? turkish : english
     }
+
     function statusText() {
         if (backend.state === "listening") return tr("Dinleniyor", "Listening")
         if (backend.state === "transcribing") return tr("Yazıya dökülüyor", "Transcribing")
@@ -26,6 +28,7 @@ ApplicationWindow {
         if (backend.state === "error") return tr("Mikrofon bulunamadı", "No microphone found")
         return tr("Hazır", "Ready")
     }
+
     function statusColor() {
         if (backend.state === "listening") return "#2ec48d"
         if (backend.state === "transcribing") return "#2e7df6"
@@ -33,15 +36,18 @@ ApplicationWindow {
         if (backend.state === "error") return "#e05555"
         return "#7a818d"
     }
+
     component ActionButton: Button {
         id: control
         padding: window.height * 0.02
+
         background: Rectangle {
             radius: window.width * 0.012
             color: control.down ? "#21242c" : control.hovered ? "#2e323e" : "#262933"
             border.color: "#343846"
             border.width: 1
         }
+
         contentItem: Text {
             text: control.text
             color: control.enabled ? "#eceef3" : "#6e7481"
@@ -50,12 +56,15 @@ ApplicationWindow {
             verticalAlignment: Text.AlignVCenter
         }
     }
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: window.width * 0.028
         spacing: window.height * 0.024
+
         RowLayout {
             spacing: window.width * 0.016
+
             Rectangle {
                 Layout.preferredWidth: window.height * 0.024
                 Layout.preferredHeight: window.height * 0.024
@@ -63,13 +72,16 @@ ApplicationWindow {
                 color: window.statusColor()
                 Behavior on color { ColorAnimation { duration: 220 } }
             }
+
             Text {
                 text: window.statusText()
                 color: "#eceef3"
                 font.pixelSize: window.height * 0.036
                 font.bold: true
             }
+
             Item { Layout.fillWidth: true }
+
             Rectangle {
                 Layout.preferredWidth: window.width * 0.2
                 Layout.preferredHeight: window.height * 0.013
@@ -83,11 +95,13 @@ ApplicationWindow {
                     Behavior on width { NumberAnimation { duration: 90 } }
                 }
             }
+
             ActionButton {
                 text: backend.turkish ? "EN" : "TR"
                 onClicked: backend.turkish = !backend.turkish
             }
         }
+
         Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
@@ -95,6 +109,7 @@ ApplicationWindow {
             color: "#1e2027"
             border.color: "#2c2f38"
             border.width: 1
+
             ScrollView {
                 anchors.fill: parent
                 anchors.margins: window.width * 0.02
@@ -110,6 +125,7 @@ ApplicationWindow {
                 }
             }
         }
+
         Text {
             text: window.saveState === "ok"
                   ? window.tr("Metin kaydedildi.", "Text saved.")
@@ -123,8 +139,10 @@ ApplicationWindow {
             color: window.saveState === "fail" ? "#e05555" : "#7a818d"
             font.pixelSize: window.height * 0.026
         }
+
         RowLayout {
             spacing: window.width * 0.014
+
             ActionButton {
                 text: backend.state === "paused"
                       ? window.tr("Devam et", "Resume")
@@ -132,10 +150,12 @@ ApplicationWindow {
                 enabled: backend.state === "listening" || backend.state === "paused"
                 onClicked: backend.toggleListening()
             }
+
             ActionButton {
                 text: window.tr("Kopyala", "Copy")
                 onClicked: backend.copyText(editor.text)
             }
+
             ActionButton {
                 text: window.tr("Dosya", "File")
                 onClicked: {
@@ -143,6 +163,7 @@ ApplicationWindow {
                     saveDialog.open()
                 }
             }
+
             ActionButton {
                 text: window.tr("Temizle", "Clear")
                 onClicked: {
@@ -150,13 +171,16 @@ ApplicationWindow {
                     window.saveState = ""
                 }
             }
+
             Item { Layout.fillWidth: true }
+
             ActionButton {
                 text: window.tr("Kapat", "Close")
                 onClicked: backend.quitNow()
             }
         }
     }
+
     FileDialog {
         id: saveDialog
         fileMode: FileDialog.SaveFile
@@ -165,6 +189,7 @@ ApplicationWindow {
         onAccepted: window.saveState =
             backend.saveText(selectedFile, editor.text) ? "ok" : "fail"
     }
+
     Connections {
         target: backend
         function onTranscriptChanged() {

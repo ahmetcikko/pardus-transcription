@@ -21,6 +21,7 @@ static std::string exe_dir() {
     buffer[length] = '\0';
     return std::filesystem::path(buffer).parent_path().string();
 }
+
 static void ensure_registered() {
     const char *home = getenv("HOME");
     if (!home)
@@ -34,6 +35,7 @@ static void ensure_registered() {
     if (keybinding_register())
         std::ofstream(flag) << "1";
 }
+
 int main(int argc, char *argv[]) {
     if (argc > 1) {
         std::string argument = argv[1];
@@ -42,10 +44,13 @@ int main(int argc, char *argv[]) {
         if (argument == "--unregister")
             return keybinding_unregister() ? 0 : 1;
     }
+
+    // another instance already holds the lock: exit quietly instead of erroring
     int lock =
         open("/tmp/pardus-dikte.lock", O_RDWR | O_CREAT | O_CLOEXEC, 0644);
     if (lock < 0 || flock(lock, LOCK_EX | LOCK_NB) != 0)
         return 0;
+
     QApplication app(argc, argv);
     ensure_registered();
     std::string model = exe_dir() + "/ggml-small-q5_1.bin";
